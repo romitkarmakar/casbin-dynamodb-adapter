@@ -1,0 +1,34 @@
+{
+	"AttributeDefinitions": [
+		{
+			"AttributeName": "p_type",
+			"AttributeType": "S"
+		},
+		{
+			"AttributeName": "id",
+			"AttributeType": "S"
+		},
+		{
+			"AttributeName": "type",
+			"AttributeType": "S"
+		}
+	],
+	"BillingMode": "PAY_PER_REQUEST",
+	"KeySchema": [
+		{
+			"AttributeName": "uploader",
+			"KeyType": "HASH"
+		},
+		{
+			"AttributeName": "id",
+			"KeyType": "RANGE"
+		}
+	],
+	"TableName": "casbin_rule",
+	"Tags": [
+		{
+			"Key": "casbin",
+			"Value": "policy"
+		}
+	]
+}

@@ -1,0 +1,1 @@
+# Casbin DynamoDB Adapter
