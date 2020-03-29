@@ -1,8 +1,9 @@
 import { expect } from "chai";
+import { createEnforcer } from "./helpers/helpers";
 
 describe('calculate', function() {
     it('add', function() {
-      let result = 7;
-      expect(result).equal(7);
+      
+      expect(7).equal(7);
     }); 
   });

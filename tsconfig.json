@@ -1,7 +1,16 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es2015",
-        "experimentalDecorators": true
-    }
+  "compilerOptions": {
+    "outDir": "build",
+    "module": "commonjs",
+    "target": "ES6",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "typeRoots": ["node_modules/@types"],
+    "declaration": true,
+    "declarationDir": "build"
+  },
+  "include": ["src/**/**.ts"],
+  "exclude": ["node_modules"]
 }

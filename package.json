@@ -2,6 +2,7 @@
   "dependencies": {
     "@aws/dynamodb-data-mapper": "^0.7.3",
     "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
+    "@aws/dynamodb-data-marshaller": "^0.7.3",
     "@aws/dynamodb-expressions": "^0.7.3",
     "aws-sdk": "^2.648.0",
     "casbin": "^4.1.1"
@@ -9,6 +10,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
+    "@types/node": "^13.9.5",
     "chai": "^4.2.0",
     "mocha": "^7.1.1",
     "nyc": "^15.0.0",
@@ -19,6 +21,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "tsc": "tsc",
     "test": "mocha -r ts-node/register tests/**/*.test.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test"
   },
