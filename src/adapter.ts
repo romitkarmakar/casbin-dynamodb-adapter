@@ -5,11 +5,15 @@ import { Helper, Model, Assertion } from "casbin"
 
 export default class DynamoDbAdapter {
     mapper: DataMapper;
+    isFiltered: boolean;
+    useTransaction: boolean;
 
     constructor() {
         this.mapper = new DataMapper({
-            client: new DynamoDB({ region: "ap-south-1" })
+            client: new DynamoDB()
         });
+        this.isFiltered = false;
+        this.useTransaction = false;
     }
 
     initialize() {
@@ -26,6 +30,14 @@ export default class DynamoDbAdapter {
                 resolve(true);
             })
         })
+    }
+
+    setFiltered(isFiltered = true): void {
+        this.isFiltered = isFiltered;
+    }
+
+    setTransaction(transactioned = true) {
+        this.useTransaction = transactioned;
     }
 
     async deleteTable() {
@@ -60,6 +72,22 @@ export default class DynamoDbAdapter {
         }
 
         Helper.loadPolicyLine(lineText, model);
+    }
+
+    async loadPolicy(model) {
+        return this.loadFilteredPolicy(model);
+    }
+
+    async loadFilteredPolicy(model: Model, filter?: any) {
+        if (filter) {
+            this.setFiltered(true);
+        } else {
+            this.setFiltered(false);
+        }
+
+        for await (const line of this.mapper.query(CasbinRule, filter || {})) {
+            this.loadPolicyLine(line, model);
+        }
     }
 
     savePolicyLine(ptype: string, rule: any): CasbinRule {
@@ -121,5 +149,57 @@ export default class DynamoDbAdapter {
     async addPolicy(sec: string, ptype: string, rule: string) {
         const line: CasbinRule = this.savePolicyLine(ptype, rule);
         await this.mapper.put(line);
+    }
+
+    async removePolicy(sec: string, ptype: string, rule: string) {
+        const obj: CasbinRule = this.savePolicyLine(ptype, rule);
+        await this.mapper.delete(obj);
+    }
+
+    async removeFilteredPolicy(sec: string, ptype: string, fieldIndex: number, ...fieldValues) {
+        const where = ptype ? { p_type: ptype } : {};
+        var result: Array<CasbinRule> = new Array();
+
+        if (fieldIndex <= 0 && fieldIndex + fieldValues.length > 0 && fieldValues[0 - fieldIndex]) {
+            Object.assign(where, {
+                v0: fieldValues[0 - fieldIndex]
+            });
+        }
+
+        if (fieldIndex <= 1 && fieldIndex + fieldValues.length > 1 && fieldValues[1 - fieldIndex]) {
+            Object.assign(where, {
+                v1: fieldValues[1 - fieldIndex]
+            });
+        }
+
+        if (fieldIndex <= 2 && fieldIndex + fieldValues.length > 2 && fieldValues[2 - fieldIndex]) {
+            Object.assign(where, {
+                v2: fieldValues[2 - fieldIndex]
+            });
+        }
+
+        if (fieldIndex <= 3 && fieldIndex + fieldValues.length > 3 && fieldValues[3 - fieldIndex]) {
+            Object.assign(where, {
+                v3: fieldValues[3 - fieldIndex]
+            });
+        }
+
+        if (fieldIndex <= 4 && fieldIndex + fieldValues.length > 4 && fieldValues[4 - fieldIndex]) {
+            Object.assign(where, {
+                v4: fieldValues[4 - fieldIndex]
+            });
+        }
+
+        if (fieldIndex <= 5 && fieldIndex + fieldValues.length > 5 && fieldValues[5 - fieldIndex]) {
+            Object.assign(where, {
+                v5: fieldValues[5 - fieldIndex]
+            });
+        }
+
+        for await (const item of this.mapper.query(CasbinRule, where)) {
+            result.push(item);
+        }
+
+        for await (const found of this.mapper.batchDelete(result));
     }
 }
