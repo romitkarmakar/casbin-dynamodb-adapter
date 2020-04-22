@@ -5,7 +5,8 @@
     "@aws/dynamodb-data-marshaller": "^0.7.3",
     "@aws/dynamodb-expressions": "^0.7.3",
     "aws-sdk": "^2.648.0",
-    "casbin": "^4.1.1"
+    "casbin": "^4.1.1",
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",

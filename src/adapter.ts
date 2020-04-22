@@ -8,27 +8,34 @@ export default class DynamoDbAdapter {
     isFiltered: boolean;
     useTransaction: boolean;
 
-    constructor() {
+    constructor(region?: string) {
         this.mapper = new DataMapper({
-            client: new DynamoDB()
+            client: new DynamoDB(region ? {
+                region: region
+            } : {
+                    region: "us-east-1"
+                })
         });
         this.isFiltered = false;
         this.useTransaction = false;
+        this.initialize();
     }
 
     initialize() {
+        var self: DynamoDbAdapter = this;
         return new Promise<boolean>(function (resolve, reject) {
-            this.mapper.ensureTableExists(CasbinRule, { readCapacityUnits: 5, writeCapacityUnits: 5 }).then(() => {
+            self.mapper.ensureTableExists(CasbinRule, { writeCapacityUnits: 1, readCapacityUnits: 5 }).then(() => {
                 resolve(true);
-            })
+            }).catch(err => reject(err)); 
         })
     }
 
     createTable() {
+        var self: DynamoDbAdapter = this;
         return new Promise<boolean>(function (resolve, reject) {
-            this.mapper.createTable(CasbinRule, { readCapacityUnits: 5, writeCapacityUnits: 5 }).then(() => {
+            self.mapper.createTable(CasbinRule, { writeCapacityUnits: 1, readCapacityUnits: 5 }).then(() => {
                 resolve(true);
-            })
+            }).catch(err => reject(err));
         })
     }
 
@@ -42,6 +49,16 @@ export default class DynamoDbAdapter {
 
     async deleteTable() {
         await this.mapper.deleteTable(CasbinRule);
+    }
+
+    async clearTable() {
+        var toRemove: Array<CasbinRule> = new Array<CasbinRule>();
+
+        for await (const line of this.mapper.scan(CasbinRule)) {
+            toRemove.push(line);
+        }
+
+        for await (const found of this.mapper.batchDelete(toRemove));
     }
 
     loadPolicyLine(line: CasbinRule, model: Model) {
@@ -85,12 +102,18 @@ export default class DynamoDbAdapter {
             this.setFiltered(false);
         }
 
-        for await (const line of this.mapper.query(CasbinRule, filter || {})) {
-            this.loadPolicyLine(line, model);
+        if (filter) {
+            for await (const line of this.mapper.query(CasbinRule, filter)) {
+                this.loadPolicyLine(line, model);
+            }
+        } else {
+            for await (const line of this.mapper.scan(CasbinRule)) {
+                this.loadPolicyLine(line, model);
+            }
         }
     }
 
-    savePolicyLine(ptype: string, rule: any): CasbinRule {
+    savePolicyLine(ptype: string, rule: Array<string>): CasbinRule {
         const model: CasbinRule = new CasbinRule();
         model.p_type = ptype;
 
@@ -139,19 +162,17 @@ export default class DynamoDbAdapter {
             }
         });
 
-        for await (const persisted of this.mapper.batchPut(lines)) {
-            console.log("Done");
-        }
+        for await (const persisted of this.mapper.batchPut(lines));
 
         return true;
     }
 
-    async addPolicy(sec: string, ptype: string, rule: string) {
+    async addPolicy(sec: string, ptype: string, rule: Array<string>) {
         const line: CasbinRule = this.savePolicyLine(ptype, rule);
         await this.mapper.put(line);
     }
 
-    async removePolicy(sec: string, ptype: string, rule: string) {
+    async removePolicy(sec: string, ptype: string, rule: Array<string>) {
         const obj: CasbinRule = this.savePolicyLine(ptype, rule);
         await this.mapper.delete(obj);
     }

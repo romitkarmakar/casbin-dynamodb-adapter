@@ -5,16 +5,18 @@ const basicModel: string = path.resolve(__dirname, '../fixtures/basic_model.conf
 const basicPolicy: string = path.resolve(__dirname, '../fixtures/basic_policy.csv');
 
 async function createEnforcer() {
-    const adapter: DynamoDbAdapter = await new DynamoDbAdapter();
+    const adapter: DynamoDbAdapter = new DynamoDbAdapter("ap-south-1");
 
     return newEnforcer(basicModel, adapter);
 };
 
 async function createAdapter() {
-    return await new DynamoDbAdapter();
+    return new DynamoDbAdapter("ap-south-1");
 };
 
 export {
     createEnforcer,
-    createAdapter
+    createAdapter,
+    basicModel,
+    basicPolicy
 }
